@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">LowYourTone</string>
+    <string name="channel_name_service">Listening Service</string>
+    <string name="channel_desc_service">Active wake word detection</string>
+    <string name="channel_name_detection">Detection Alerts</string>
+    <string name="channel_desc_detection">Wake word detection notifications</string>
+    <string name="channel_name_emergency">Emergency Alerts</string>
+    <string name="channel_desc_emergency">Critical emergency action failure alerts</string>
+    <string name="listening_active">Listening for wake words</string>
+    <string name="service_running">Detection service is active</string>
+    <string name="default_wake_word">hello</string>
+</resources>

@@ -1,0 +1,2 @@
+-dontwarn edu.cmu.pocketsphinx.**
+-keep class edu.cmu.pocketsphinx.** { *; }
