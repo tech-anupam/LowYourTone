@@ -37,6 +37,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -46,6 +52,8 @@ import dev.anupam.lowyourtone.ui.viewmodel.SettingsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
     val defaultSensitivity by viewModel.defaultSensitivity.collectAsState()
     val silentMode by viewModel.silentMode.collectAsState()
 
@@ -218,9 +226,68 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text("LOWYOURTONE", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-                    Text("v1.0.0", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("v1.0.0 • 100% Offline & Private", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Built by Anupam", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/tech-anupam/LowYourTone")).apply {
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                }
+                                context.startActivity(intent)
+                            },
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.primary
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("GITHUB", style = MaterialTheme.typography.titleMedium)
+                        }
+
+                        Button(
+                            onClick = {
+                                clipboardManager.setText(AnnotatedString("anupambuilds@fam"))
+                                Toast.makeText(context, "UPI ID copied: anupambuilds@fam", Toast.LENGTH_SHORT).show()
+                                try {
+                                    val upiUri = Uri.parse("upi://pay?pa=anupambuilds@fam&pn=Anupam&tn=Support%20LowYourTone&cu=INR")
+                                    val upiIntent = Intent(Intent.ACTION_VIEW, upiUri).apply {
+                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                    }
+                                    context.startActivity(Intent.createChooser(upiIntent, "Donate via UPI"))
+                                } catch (_: Exception) {}
+                            },
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
+                                contentColor = MaterialTheme.colorScheme.tertiary
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("DONATE UPI", style = MaterialTheme.typography.titleMedium)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "UPI: anupambuilds@fam (Tap to copy/pay)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    )
                 }
             }
 
