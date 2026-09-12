@@ -48,7 +48,7 @@ Do not clone this repository and try to build it unless you are a developer. Reg
 
 The app requires **Android 8.0 or newer**.
 
-## Permissions, explained plainly
+## Permissions 
 
 The app will ask for a few permissions during setup. Here is what each one is actually for, in plain terms:
 
