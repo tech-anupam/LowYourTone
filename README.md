@@ -11,8 +11,6 @@ Offline voice wake word automation for Android. Say a word, trigger an action. N
 
 <p align="center">
   <img src="https://img.shields.io/badge/Kotlin-100%25-8A2BE2?style=flat-square" alt="Kotlin">
-  <img src="https://img.shields.io/badge/Jetpack%20Compose-UI-8A2BE2?style=flat-square" alt="Jetpack Compose">
-  <img src="https://img.shields.io/badge/100%25%20Offline-No%20Cloud-8A2BE2?style=flat-square" alt="Offline">
 </p>
 
 ---
