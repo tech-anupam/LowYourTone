@@ -9,10 +9,6 @@ Offline voice wake word automation for Android. Say a word, trigger an action. N
   <img src="https://img.shields.io/badge/platform-Android%208.0%2B-8A2BE2?style=for-the-badge" alt="Platform">
 </p>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Kotlin-100%25-8A2BE2?style=flat-square" alt="Kotlin">
-</p>
-
 ---
 
 ## What this app actually does
