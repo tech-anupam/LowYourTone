@@ -101,10 +101,4 @@ This is by design. A safety tool that depends on an internet connection is not a
 
 This app is built carefully and tested, but it is an independent project, not a certified emergency service product. Please test your wake words and actions yourself after setup, keep your phone charged, and do not treat this as a guaranteed replacement for calling emergency services directly when you are able to.
 
-## Feedback and issues
-
-Found a bug, or have an idea for a new action or feature? Open an issue on this repository. Feedback directly shapes what gets built next.
-
----
-
 <p align="center">Built by <a href="https://github.com/tech-anupam">Anupam</a></p>
