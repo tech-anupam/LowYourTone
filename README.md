@@ -1,104 +1,205 @@
 # LowYourTone
 
-Offline voice wake word automation for Android. Say a word, trigger an action. No internet required, no audio ever leaves your phone.
+**When you can't reach your phone, your voice becomes your lifeline.**
 
 <p align="center">
-  <img src="https://img.shields.io/github/v/release/tech-anupam/LowYourTone?style=for-the-badge&color=8A2BE2" alt="Latest Release">
+  <img src="https://img.shields.io/github/v/tag/tech-anupam/LowYourTone?label=release&style=for-the-badge&color=8A2BE2" alt="Latest Release">
   <img src="https://img.shields.io/github/downloads/tech-anupam/LowYourTone/total?style=for-the-badge&color=8A2BE2" alt="Downloads">
   <img src="https://img.shields.io/github/license/tech-anupam/LowYourTone?style=for-the-badge&color=8A2BE2" alt="License">
   <img src="https://img.shields.io/badge/platform-Android%208.0%2B-8A2BE2?style=for-the-badge" alt="Platform">
 </p>
 
+---
 
-## What this app actually does
+## The Problem We Can't Ignore
 
-Think of it like a personal panic button and remote control, except the remote is your own voice, and it works without signal, without WiFi, and without any company listening in.
+India reported **4,41,534 cases** of crimes against women in 2024 alone.
 
-You pick a word. You pick an action. From then on, saying that word out loud makes your phone do that action, instantly, even if the phone is in your pocket and the screen is off.
+That's **1,210 women every single day.**
 
-Some examples people use it for:
+And these are just the ones that got reported.
 
-- Say "help now" and your phone calls emergency services and texts your location to a chosen contact, automatically.
-- Say a specific name and your phone calls that person directly, no unlocking, no tapping.
-- Say "record this" and your phone quietly starts recording audio in the background.
-- Say "lights on" and your flashlight turns on.
+In **96.8% of rape cases**, the attacker was someone the victim already knew. In cities like Delhi and Bengaluru, women are harassed in broad daylight - during morning commutes, on college campuses, walking home from work. A 2025 study found that **40% of urban Indian women** still feel unsafe in their own neighborhoods.
 
-All of this happens fully on the device. LowYourTone never sends your voice, your location, or anything else to a server. There is no server. Everything is processed and stored locally on your phone.
+The worst part? In a real emergency, **you can't always reach your phone.** Your hands might be held. Your phone might be in your bag. You might be driving. You might just be frozen with fear.
 
-## Why it exists
+Every safety app out there needs you to unlock your phone, open the app, find a button, and press it. In a real crisis, none of that works.
 
-Phones are supposed to help in a crisis, but in a real crisis, most people cannot unlock their phone, find the right app, find the right contact, and tap call, all in a few seconds of panic. LowYourTone removes every one of those steps. You just speak.
+**We asked a simple question: What if your voice was enough?**
 
-It is built for situations like:
+---
 
-- Personal safety, especially for people walking alone, commuting late, or in an unsafe situation.
-- Hands-busy moments, cooking, driving, working, where reaching for the phone is not an option.
-- Elderly or vulnerable users who need a simpler way to reach help than navigating a phone screen.
-- Anyone who just wants a faster way to trigger common phone actions by voice, without relying on Google Assistant, Siri, or any cloud-based voice assistant.
+## What LowYourTone Does
 
-## How to download and install
+LowYourTone listens for a secret word that only you know. Say it, and your phone acts - immediately, automatically, silently.
 
-Do not clone this repository and try to build it unless you are a developer. Regular users should download the ready-to-use app instead.
+No buttons to press. No screen to unlock. No internet required. **Just your voice.**
 
-1. Go to the **Releases** tab of this repository: [LowYourTone Releases](https://github.com/tech-anupam/LowYourTone/releases)
-2. Open the latest release at the top of the page.
-3. Under **Assets**, download the file ending in `.apk`.
-4. Open the downloaded file on your Android phone. If Android warns you about installing from outside the Play Store, allow it for this file. This is normal for apps distributed directly on GitHub instead of the Play Store.
-5. Open the app, grant the permissions it asks for, and set up your first wake word.
+| Say This | Your Phone Does This |
+|----------|---------------------|
+| *your secret word* | Calls your emergency contact |
+| *your secret word* | Sends your GPS location via SMS |
+| *your secret word* | Starts recording audio as evidence |
+| *your secret word* | Turns on flashlight as a signal |
+| *your secret word* | Triggers a loud alarm |
+| *your secret word* | Sends a WhatsApp message |
 
-The app requires **Android 8.0 or newer**.
+You choose the word. You choose the action. Nobody else knows.
 
-## Permissions 
+**Your wake word could be anything** - a normal-sounding word that won't alert an attacker. Something like "weather" or "homework" or a word in your own language. It sounds innocent. But your phone knows what it means.
 
-The app will ask for a few permissions during setup. Here is what each one is actually for, in plain terms:
+---
 
-| Permission it asks for | Why it needs it |
-|---|---|
-| Microphone | To listen for your wake word. This is the core of the app. |
-| Phone calls | So a wake word can actually place a call, like calling emergency services or a contact. |
-| SMS | So a wake word can send a text message, including sharing your location in an emergency. |
-| Contacts | So you can pick who gets called or texted, instead of typing numbers manually. |
-| Location | So an emergency wake word can send your current location to someone. |
-| Camera | Only used to control the flashlight, the app does not take photos or video through this permission unless you set up a record action yourself. |
-| Notifications | To show you that the listening service is active and running in the background. |
+## Why This Exists
 
-None of these permissions are used to collect data or send anything off your phone. They exist purely so the app can carry out the actions you configure.
+After the 2012 Nirbhaya case, India got stricter laws. After every trending case since - Hathras, Hyderabad, Bengaluru, Kolkata - we got outrage, candlelight marches, hashtags. The news cycle moves on. The problem doesn't.
 
-## What you can set a wake word to do
+The government launched the 112 emergency number, the Nirbhaya Fund, One Stop Centres. These matter. But they all assume one thing: **that the victim can make a call.**
 
-Every wake word you create can be linked to one of the following actions:
+What if she can't?
 
-- Call a specific contact
-- Emergency SOS call, with location sent automatically
-- Send a text message
-- Send your live location by text
-- Open any app on your phone
-- Turn the flashlight on or off
-- Flash the light rapidly with vibration, useful for getting attention
-- Record an audio memo
-- Record a video
-- Play a loud alarm sound
-- Send a pre-written WhatsApp message
-- Switch your phone to silent
-- Turn Do Not Disturb on or off
-- Set every volume to maximum
-- Stop any recording, sound, or flashlight instantly
-- Lock your screen
-- Trigger a custom action, for advanced users who want to connect it to other tools
+What if her hands are pinned? What if she's being watched? What if her phone is in her pocket and she can't take it out?
 
-## Why it works without internet
+LowYourTone was built for that exact moment. The moment where everything else fails, and the only thing left is your voice.
 
-Most voice assistants send your voice to a company's server to figure out what you said. LowYourTone does not do this. It uses an offline speech recognition engine that runs entirely on your phone's hardware. This means:
+---
 
-- It works in airplane mode.
-- It works with no SIM card.
-- It works in places with zero signal.
-- Nobody, including the app's own developer, can ever access what you said.
+## How It Works
 
-This is by design. A safety tool that depends on an internet connection is not a safety tool you can rely on in the moments that matter most.
+```
+1. You set a secret wake word (e.g., "pineapple")
+2. You assign an action (e.g., send location SMS to Mom)
+3. LowYourTone listens in the background - always, silently
+4. You say "pineapple" - your phone sends the SMS instantly
+```
 
-## A note before you rely on this for emergencies
+**Everything happens on your phone. Nothing goes to the cloud. No internet needed. No audio ever leaves your device.**
 
-This app is built carefully and tested, but it is an independent project, not a certified emergency service product. Please test your wake words and actions yourself after setup, keep your phone charged, and do not treat this as a guaranteed replacement for calling emergency services directly when you are able to.
+This isn't speech-to-text or Google Assistant. This uses PocketSphinx - an offline speech recognition engine that runs entirely on your device. Your privacy is absolute.
 
-<p align="center">Built by <a href="https://github.com/tech-anupam">Anupam</a></p>
+---
+
+## Features
+
+- **100% Offline** - Works without WiFi, mobile data, or any internet connection
+- **Background Listening** - Works even when your phone is locked or in your pocket
+- **17 Actions** - Call, SMS, location share, flashlight, alarm, audio record, WhatsApp, and more
+- **Multiple Wake Words** - Different words for different emergencies
+- **Zero Cloud** - No audio data ever leaves your phone
+- **Customizable Sensitivity** - Adjust how easily your wake word is detected
+- **Action History** - See every time a wake word was triggered
+- **Battery Optimized** - Designed to run for hours without draining your battery
+- **Works on Xiaomi/Redmi** - Special handling for aggressive battery management
+
+---
+
+## Not Just for Women
+
+While women's safety was the original motivation, LowYourTone is for everyone:
+
+- **Elderly parents** who can't navigate phone screens during a fall
+- **Delivery workers** who need hands-free emergency calls while riding
+- **Children** who need a simple way to alert parents
+- **Anyone with disabilities** who can't easily use touchscreens
+- **Solo travelers** who want a silent panic system
+- **Night shift workers** walking to their vehicle alone
+
+---
+
+## Download
+
+<p align="center">
+  <a href="https://github.com/tech-anupam/LowYourTone/releases/latest">
+    <img src="https://img.shields.io/badge/Download%20APK-Latest%20Release-8A2BE2?style=for-the-badge&logo=android" alt="Download APK">
+  </a>
+</p>
+
+> **Requires Android 8.0 (Oreo) or higher.** Download the APK from the latest GitHub release and install it manually.
+
+---
+
+## Play Store?
+
+We want to put this on the Google Play Store so it reaches the people who need it most - women in tier-2 and tier-3 cities, college students, night shift workers.
+
+But publishing on the Play Store costs **₹2,500** (Google's one-time developer registration fee).
+
+If this app helped you, or if you think it should reach more people:
+
+**UPI: `anupambuilds@fam`**
+
+Every rupee goes directly toward the Play Store listing and keeping this project alive. If we hit the goal, the app goes live on the Play Store - free, forever, for everyone.
+
+---
+
+## Privacy
+
+- **No internet permission** - The app literally cannot send data anywhere
+- **No analytics, no tracking, no telemetry**
+- **All speech recognition happens on-device** using PocketSphinx
+- **Audio is never stored** unless you explicitly use the "Record Audio" action
+- **Open source** - Read every line of code yourself
+
+---
+
+## Tech Stack
+
+For developers who want to contribute or understand how it works:
+
+| Component | Technology |
+|-----------|------------|
+| Language | Kotlin 100% |
+| UI | Jetpack Compose + Material 3 |
+| Speech Engine | PocketSphinx (offline, on-device) |
+| Architecture | MVVM + Hilt DI |
+| Database | Room |
+| Preferences | DataStore |
+| Location | Google Play Services FusedLocation |
+| Build | Gradle + AGP 9.1.0 |
+| Target SDK | 36 (Android 16) |
+| Min SDK | 26 (Android 8.0) |
+
+---
+
+## Contributing
+
+This is a solo project built by one person. If you're a developer and want to help:
+
+1. Fork the repo
+2. Create a feature branch
+3. Make your changes
+4. Open a pull request
+
+No contribution is too small. Even fixing a typo helps.
+
+---
+
+## Research & References
+
+The statistics and context mentioned in this README come from publicly available sources:
+
+| Source | What It Says |
+|--------|-------------|
+| **NCRB "Crime in India 2024"** (May 2026) | 4,41,534 registered cases of crimes against women in 2024; 64.6 per lakh crime rate; 96.8% of rape cases involved known perpetrators |
+| **Ashoka University / NCRB Analysis** | 1,210 cases registered per day on average; domestic violence as the leading category |
+| **National Commission for Women (NCW)** | 25% of complaints are domestic violence; rest include stalking, assault, and dowry harassment |
+| **IndiaSpend / SPRF** | Significant underreporting due to social stigma and lack of faith in the justice system |
+| **2025 Urban Safety Survey** | 40% of women in urban India consider their surroundings unsafe; harassment peaks during 5 AM-8 PM |
+| **NDTV / The Hindu (2024-2025)** | Multiple high-profile cases in Bengaluru and Delhi involving broad-daylight assault and stalking |
+| **Government Initiatives** | 112 emergency number, Nirbhaya Fund, One Stop Centres (OSCs), 181 women's helpline |
+
+---
+
+## License
+
+This project is open source under the [MIT License](LICENSE).
+
+---
+
+<p align="center">
+  <b>Built in India. For India. By someone who got tired of just being angry.</b>
+</p>
+
+<p align="center">
+  <a href="https://github.com/tech-anupam">@tech-anupam</a>
+</p>

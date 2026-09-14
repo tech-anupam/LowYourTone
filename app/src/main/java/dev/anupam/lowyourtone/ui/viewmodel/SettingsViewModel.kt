@@ -27,6 +27,9 @@ class SettingsViewModel @Inject constructor(
     val silentMode: StateFlow<Boolean> = preferencesManager.silentMode
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
+    val masterListeningEnabled: StateFlow<Boolean> = preferencesManager.masterListeningEnabled
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
+
     fun isBatteryOptimized(): Boolean {
         val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         return !powerManager.isIgnoringBatteryOptimizations(context.packageName)

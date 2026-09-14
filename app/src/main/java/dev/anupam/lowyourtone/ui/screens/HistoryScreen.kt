@@ -18,7 +18,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
+import kotlinx.coroutines.launch
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -69,8 +71,52 @@ fun HistoryScreen(navController: NavController, viewModel: HistoryViewModel) {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Export not hooked up to FileProvider in UI here */ }) {
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+                    var showClearDialog by remember { mutableStateOf(false) }
+
+                    IconButton(onClick = {
+                        coroutineScope.launch {
+                            val file = viewModel.exportHistoryToCsv()
+                            if (file != null) {
+                                val uri = androidx.core.content.FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.fileprovider",
+                                    file
+                                )
+                                val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                    type = "text/csv"
+                                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                context.startActivity(android.content.Intent.createChooser(intent, "Share Export"))
+                            }
+                        }
+                    }) {
                         Icon(Icons.Default.Share, contentDescription = "Export")
+                    }
+                    IconButton(onClick = { showClearDialog = true }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Clear History")
+                    }
+                    if (showClearDialog) {
+                        androidx.compose.material3.AlertDialog(
+                            onDismissRequest = { showClearDialog = false },
+                            title = { Text("Clear History") },
+                            text = { Text("Are you sure you want to clear all history?") },
+                            confirmButton = {
+                                androidx.compose.material3.TextButton(onClick = {
+                                    viewModel.clearHistory()
+                                    showClearDialog = false
+                                }) {
+                                    Text("Clear")
+                                }
+                            },
+                            dismissButton = {
+                                androidx.compose.material3.TextButton(onClick = { showClearDialog = false }) {
+                                    Text("Cancel")
+                                }
+                            }
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

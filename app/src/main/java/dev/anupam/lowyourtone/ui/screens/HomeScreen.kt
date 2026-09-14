@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -48,6 +49,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -69,7 +71,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
+import dev.anupam.lowyourtone.R
 import dev.anupam.lowyourtone.data.model.ActionType
 import dev.anupam.lowyourtone.data.model.WakeAction
 import dev.anupam.lowyourtone.data.model.WakeWord
@@ -87,7 +91,17 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("LOWYOURTONE", style = MaterialTheme.typography.titleLarge) },
+                title = { 
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_app_logo),
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("LOWYOURTONE", style = MaterialTheme.typography.titleLarge)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground
@@ -122,39 +136,82 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        if (wakeWords.isEmpty()) {
-            Box(
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            Surface(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = if (masterListening) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("No triggers yet", style = MaterialTheme.typography.bodyLarge)
-                    Text("Tap + to create one", style = MaterialTheme.typography.bodyMedium)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (masterListening) {
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.onPrimary)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("LISTENING", color = MaterialTheme.colorScheme.onPrimary)
+                    } else {
+                        Text("STOPPED", color = MaterialTheme.colorScheme.onPrimary)
+                    }
                 }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(wakeWords, key = { it.first.id }) { (word, action) ->
-                    WakeWordCard(
-                        word = word,
-                        action = action,
-                        onClick = { navController.navigate("add_edit?wakeWordId=${word.id}") },
-                        onEdit = { navController.navigate("add_edit?wakeWordId=${word.id}") },
-                        onRename = {
-                            renameText = word.phrase
-                            wordToRename = word
-                        },
-                        onDelete = { wordToDelete = word },
-                        onToggle = { enabled -> viewModel.toggleWakeWord(word.id, enabled) }
-                    )
+
+            if (wakeWords.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("No triggers yet", style = MaterialTheme.typography.titleLarge)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Tap + to create your first wake word",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(wakeWords, key = { it.first.id }) { (word, action) ->
+                        WakeWordCard(
+                            word = word,
+                            action = action,
+                            onClick = { navController.navigate("add_edit?wakeWordId=${word.id}") },
+                            onEdit = { navController.navigate("add_edit?wakeWordId=${word.id}") },
+                            onRename = {
+                                renameText = word.phrase
+                                wordToRename = word
+                            },
+                            onDelete = { wordToDelete = word },
+                            onToggle = { enabled -> viewModel.toggleWakeWord(word.id, enabled) }
+                        )
+                    }
                 }
             }
         }
@@ -189,9 +246,10 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
             onDismissRequest = { wordToRename = null },
             title = { Text("Rename trigger", style = MaterialTheme.typography.titleLarge) },
             text = {
-                TextField(
+                OutlinedTextField(
                     value = renameText,
                     onValueChange = { renameText = it },
+                    label = { Text("New phrase") },
                     singleLine = true
                 )
             },

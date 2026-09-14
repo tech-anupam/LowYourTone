@@ -2,6 +2,8 @@ package dev.anupam.lowyourtone.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,12 +20,15 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -156,6 +161,30 @@ fun AddEditWakeWordScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
+                    Text("SENSITIVITY", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Slider(
+                        value = uiState.sensitivity.toFloat(),
+                        onValueChange = { viewModel.updateSensitivity(it.toInt()) },
+                        valueRange = 1f..10f,
+                        steps = 8
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("STRICT", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                        Text("RELAXED", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                    }
+                }
+            }
+
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -179,9 +208,27 @@ fun AddEditWakeWordScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    Text("Wait Time", style = MaterialTheme.typography.titleLarge, color = if (isEmergency) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f) else MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    @OptIn(ExperimentalLayoutApi::class)
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf(0, 3, 5, 10, 30).forEach { preset ->
+                            FilterChip(
+                                selected = uiState.cooldownSeconds == preset,
+                                onClick = { viewModel.updateCooldown(preset) },
+                                label = { Text("${preset}s") },
+                                enabled = !isEmergency
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Wait Time", style = MaterialTheme.typography.titleLarge, color = if (isEmergency) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f) else MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.width(12.dp))
                         OutlinedTextField(
                             value = if (isEmergency) "0" else uiState.cooldownSeconds.toString(),
                             onValueChange = {

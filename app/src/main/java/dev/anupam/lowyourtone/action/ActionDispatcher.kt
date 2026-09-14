@@ -113,6 +113,7 @@ class ActionDispatcher @Inject constructor(
             recordHistory(wakeWord, action, confidence, true, null)
         } catch (e: Exception) {
             recordHistory(wakeWord, action, confidence, false, e.message)
+            showActionErrorNotification(action.label, e.message ?: "Action failed unexpectedly")
             if (action.type == ActionType.CALL_EMERGENCY) {
                 showEmergencyFailureNotification(e.message ?: "Emergency action failed")
             }
@@ -282,8 +283,21 @@ class ActionDispatcher @Inject constructor(
     }
 
     private fun handleLockScreen() {
-        val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-        dpm.lockNow()
+        try {
+            val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+            val adminComponent = ComponentName(context, context.packageName + ".DeviceAdminReceiver")
+            if (dpm.isAdminActive(adminComponent)) {
+                dpm.lockNow()
+            } else {
+                val accessibilityIntent = Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                showActionErrorNotification("Lock Screen", "Device admin not active. Enable it in Settings to use screen lock.")
+                context.startActivity(accessibilityIntent)
+            }
+        } catch (e: Exception) {
+            showActionErrorNotification("Lock Screen", "Unable to lock screen: ${e.message}")
+        }
     }
 
     private fun handleToggleSilent() {
@@ -614,6 +628,17 @@ class ActionDispatcher @Inject constructor(
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
 
+    private fun showActionErrorNotification(actionName: String, reason: String) {
+        val notification = NotificationCompat.Builder(context, "error_channel")
+            .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setContentTitle("Action failed: $actionName")
+            .setContentText(reason)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+        notificationManager.notify(actionName.hashCode(), notification)
+    }
+
     private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationManager.createNotificationChannel(
@@ -621,6 +646,9 @@ class ActionDispatcher @Inject constructor(
             )
             notificationManager.createNotificationChannel(
                 NotificationChannel("emergency_channel", "Emergency Alerts", NotificationManager.IMPORTANCE_HIGH)
+            )
+            notificationManager.createNotificationChannel(
+                NotificationChannel("error_channel", "Errors & Alerts", NotificationManager.IMPORTANCE_HIGH)
             )
         }
     }

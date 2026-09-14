@@ -81,6 +81,10 @@ class AddEditWakeWordViewModel @Inject constructor(
         }
     }
 
+    fun updateSensitivity(value: Int) {
+        _uiState.update { it.copy(sensitivity = value) }
+    }
+
     private fun validatePhrase(phrase: String) {
         viewModelScope.launch {
             val words = phrase.split("\\s+".toRegex()).filter { it.isNotBlank() }
@@ -100,10 +104,15 @@ class AddEditWakeWordViewModel @Inject constructor(
         if (state.phrase.isBlank()) return
 
         viewModelScope.launch {
-            val actionId = UUID.randomUUID().toString()
+            val existingWord = wakeWordId?.let { wakeWordDao.getById(it) }
+            val actionId = if (state.isEditing && existingWord != null) existingWord.actionId else UUID.randomUUID().toString()
             val wordId = wakeWordId ?: UUID.randomUUID().toString()
             val wordCount = state.phrase.trim().split("\\s+".toRegex()).size
-            val threshold = if (wordCount <= 1) 1e-10f else 1e-15f
+            val threshold = when {
+                wordCount <= 1 -> 1e-25f
+                wordCount == 2 -> 1e-35f
+                else -> 1e-45f
+            }
 
             state.selectedActionType?.let { type ->
                 val action = WakeAction(
@@ -150,5 +159,6 @@ data class AddEditUiState(
     val requireConfirmation: Boolean = false,
     val cooldownSeconds: Int = 5,
     val selectedActionType: ActionType? = null,
-    val actionParams: Map<String, String> = emptyMap()
+    val actionParams: Map<String, String> = emptyMap(),
+    val sensitivity: Int = 5
 )

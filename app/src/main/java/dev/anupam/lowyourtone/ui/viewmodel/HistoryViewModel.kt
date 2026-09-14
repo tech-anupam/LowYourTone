@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import androidx.lifecycle.viewModelScope
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -55,5 +57,11 @@ class HistoryViewModel @Inject constructor(
             }
         }
         return file
+    }
+
+    fun clearHistory() {
+        viewModelScope.launch {
+            historyEntryDao.deleteAll()
+        }
     }
 }

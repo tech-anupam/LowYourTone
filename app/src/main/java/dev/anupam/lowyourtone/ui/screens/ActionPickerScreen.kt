@@ -75,22 +75,22 @@ fun ActionPickerScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Choose Action", color = Color(0xFFF3E5F5)) },
+                title = { Text("Choose Action", color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(0xFFF3E5F5)
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1A1A2E)
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
-        containerColor = Color(0xFF1A1A2E)
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -113,7 +113,7 @@ fun ActionPickerScreen(navController: NavController) {
         ModalBottomSheet(
             onDismissRequest = { selectedAction = null },
             sheetState = sheetState,
-            containerColor = Color(0xFF24243E)
+            containerColor = MaterialTheme.colorScheme.surface
         ) {
             ActionConfigForm(
                 actionType = selectedAction!!,
@@ -134,7 +134,7 @@ fun ActionCard(action: ActionType, onClick: () -> Unit) {
             .fillMaxWidth()
             .height(120.dp)
             .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2B4A)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
@@ -147,13 +147,13 @@ fun ActionCard(action: ActionType, onClick: () -> Unit) {
             Icon(
                 imageVector = getActionIcon(action),
                 contentDescription = action.label,
-                tint = Color(0xFFCE93D8),
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp)
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = action.label,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center
             )
@@ -170,7 +170,7 @@ fun ActionConfigForm(actionType: ActionType, onDone: (Map<String, String>) -> Un
     ) {
         Text(
             text = actionType.label,
-            color = Color(0xFFF3E5F5),
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 24.dp)
@@ -196,7 +196,7 @@ fun ActionConfigForm(actionType: ActionType, onDone: (Map<String, String>) -> Un
 fun NoConfigForm(onDone: (Map<String, String>) -> Unit) {
     Text(
         text = "No setup needed",
-        color = Color(0xFFB39DDB),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         fontSize = 16.sp,
         modifier = Modifier.padding(bottom = 24.dp)
     )
@@ -331,12 +331,12 @@ fun OpenAppForm(onDone: (Map<String, String>) -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { selectedPackage = app.second }
-                    .background(if (isSelected) Color(0xFF3F3C6D) else Color.Transparent)
+                    .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
                     .padding(12.dp)
             ) {
                 Column {
-                    Text(text = app.first, color = Color.White, fontSize = 16.sp)
-                    Text(text = app.second, color = Color(0xFFB39DDB), fontSize = 12.sp)
+                    Text(text = app.first, color = MaterialTheme.colorScheme.onPrimaryContainer, fontSize = 16.sp)
+                    Text(text = app.second, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                 }
             }
         }
@@ -468,9 +468,9 @@ fun ContactPickerField(label: String, value: String, onValueChange: (String) -> 
             onClick = { permissionLauncher.launch(Manifest.permission.READ_CONTACTS) },
             modifier = Modifier
                 .size(56.dp)
-                .background(Color(0xFF3F3C6D), RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))
         ) {
-            Icon(Icons.Default.Contacts, contentDescription = "Pick Contact", tint = Color.White)
+            Icon(Icons.Default.Contacts, contentDescription = "Pick Contact", tint = MaterialTheme.colorScheme.onPrimaryContainer)
         }
     }
 }
@@ -484,11 +484,11 @@ fun DoneButton(enabled: Boolean = true, onClick: () -> Unit) {
             .fillMaxWidth()
             .height(50.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF9C27B0),
-            disabledContainerColor = Color(0xFF4A4A4A)
+            containerColor = MaterialTheme.colorScheme.primary,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
-        Text("Done", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text("Done", color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -497,11 +497,11 @@ fun Chip(text: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF3F3C6D))
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
-        Text(text = text, color = Color.White, fontSize = 12.sp)
+        Text(text = text, color = MaterialTheme.colorScheme.onPrimaryContainer, fontSize = 12.sp)
     }
 }
 
@@ -509,12 +509,12 @@ fun Chip(text: String, onClick: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 fun textFieldColors(): TextFieldColors {
     return OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = Color(0xFFCE93D8),
-        unfocusedBorderColor = Color(0xFF5E35B1),
-        focusedLabelColor = Color(0xFFCE93D8),
-        unfocusedLabelColor = Color(0xFFB39DDB),
-        focusedTextColor = Color.White,
-        unfocusedTextColor = Color.White,
-        cursorColor = Color(0xFFCE93D8)
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+        focusedLabelColor = MaterialTheme.colorScheme.primary,
+        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+        cursorColor = MaterialTheme.colorScheme.primary
     )
 }

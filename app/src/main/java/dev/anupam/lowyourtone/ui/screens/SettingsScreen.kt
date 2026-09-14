@@ -40,6 +40,13 @@ import androidx.compose.ui.unit.dp
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import android.content.ComponentName
+import android.provider.Settings
+import android.os.Build
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
@@ -56,6 +63,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
     val clipboardManager = LocalClipboardManager.current
     val defaultSensitivity by viewModel.defaultSensitivity.collectAsState()
     val silentMode by viewModel.silentMode.collectAsState()
+    val masterListening by viewModel.masterListeningEnabled.collectAsState()
 
     var isOptimized by remember { mutableStateOf(viewModel.isBatteryOptimized()) }
 
@@ -99,6 +107,19 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
             Spacer(modifier = Modifier.height(4.dp))
 
             Surface(
+                color = if (masterListening) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Text(
+                    text = if (masterListening) "SERVICE ACTIVE" else "SERVICE STOPPED",
+                    color = if (masterListening) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+
+            Surface(
                 color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -134,6 +155,101 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
                                 Text("FIX")
                             }
                         }
+                    }
+                }
+            }
+
+            val manufacturerLower = Build.MANUFACTURER.lowercase()
+            val isOemDevice = listOf("xiaomi", "redmi", "poco", "oppo", "realme", "oneplus", "vivo", "iqoo", "huawei", "honor").any { manufacturerLower.contains(it) }
+
+            if (isOemDevice) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text("AUTOSTART", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Required for background listening on ${Build.MANUFACTURER} devices", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = {
+                                val intent = Intent()
+                                when {
+                                    manufacturerLower.contains("xiaomi") || manufacturerLower.contains("redmi") || manufacturerLower.contains("poco") -> {
+                                        intent.component = ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity")
+                                    }
+                                    manufacturerLower.contains("oppo") || manufacturerLower.contains("realme") -> {
+                                        intent.component = ComponentName("com.coloros.safecenter", "com.coloros.safecenter.permission.startup.StartupAppListActivity")
+                                    }
+                                    manufacturerLower.contains("oneplus") -> {
+                                        intent.component = ComponentName("com.oneplus.security", "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity")
+                                    }
+                                    manufacturerLower.contains("vivo") || manufacturerLower.contains("iqoo") -> {
+                                        intent.component = ComponentName("com.iqoo.secure", "com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity")
+                                    }
+                                    manufacturerLower.contains("huawei") || manufacturerLower.contains("honor") -> {
+                                        intent.component = ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity")
+                                    }
+                                }
+                                try {
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("FIX")
+                        }
+                    }
+                }
+            }
+
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text("PERMISSIONS", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    val perms = listOf(
+                        "android.permission.RECORD_AUDIO" to "RECORD_AUDIO",
+                        "android.permission.CAMERA" to "CAMERA",
+                        "android.permission.CALL_PHONE" to "CALL_PHONE",
+                        "android.permission.SEND_SMS" to "SEND_SMS",
+                        "android.permission.ACCESS_FINE_LOCATION" to "ACCESS_FINE_LOCATION",
+                        "android.permission.POST_NOTIFICATIONS" to "POST_NOTIFICATIONS"
+                    )
+                    perms.forEach { (permId, permName) ->
+                        val granted = ContextCompat.checkSelfPermission(context, permId) == PackageManager.PERMISSION_GRANTED
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(permName, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                            Icon(
+                                imageVector = if (granted) Icons.Default.Check else Icons.Default.Clear,
+                                contentDescription = null,
+                                tint = if (granted) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("FIX")
                     }
                 }
             }
