@@ -38,9 +38,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import android.content.Intent
+import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import android.content.ComponentName
+import android.app.admin.DevicePolicyManager
 import android.provider.Settings
 import android.os.Build
 import android.content.pm.PackageManager
@@ -55,6 +57,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import dev.anupam.lowyourtone.ui.viewmodel.SettingsViewModel
+import dev.anupam.lowyourtone.security.LowYourToneDeviceAdminReceiver
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,14 +67,28 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
     val defaultSensitivity by viewModel.defaultSensitivity.collectAsState()
     val silentMode by viewModel.silentMode.collectAsState()
     val masterListening by viewModel.masterListeningEnabled.collectAsState()
+    val microphoneGranted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+    val callGranted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED
+    val smsGranted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED
+    val locationGranted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+        ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    val emergencyReady = masterListening && microphoneGranted && callGranted
 
     var isOptimized by remember { mutableStateOf(viewModel.isBatteryOptimized()) }
+    var isDeviceAdminActive by remember {
+        mutableStateOf(
+            (context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager)
+                .isAdminActive(ComponentName(context, LowYourToneDeviceAdminReceiver::class.java))
+        )
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 isOptimized = viewModel.isBatteryOptimized()
+                isDeviceAdminActive = (context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager)
+                    .isAdminActive(ComponentName(context, LowYourToneDeviceAdminReceiver::class.java))
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -117,6 +134,73 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
+            }
+
+            Surface(
+                color = if (emergencyReady) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(
+                        if (emergencyReady) "EMERGENCY READY" else "EMERGENCY NOT ARMED",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = if (emergencyReady) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        if (emergencyReady) {
+                            if (smsGranted && locationGranted) "Wake-word calls work while locked. Backup SOS location SMS is also ready."
+                            else "Wake-word calls work while locked. Grant SMS and Location below if you want a backup SOS location message too."
+                        } else {
+                            "Turn on listening and grant Microphone + Phone access before relying on an emergency trigger."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    )
+                    if (!emergencyReady) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = {
+                                context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("FIX PERMISSIONS")
+                        }
+                    }
+                }
+            }
+
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text("SCREEN LOCK", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Lets the Lock Screen action lock your phone. Android will still require your existing PIN, pattern, or password to unlock.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(if (isDeviceAdminActive) "ENABLED" else "NOT ENABLED", color = if (isDeviceAdminActive) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary, style = MaterialTheme.typography.labelLarge)
+                        if (!isDeviceAdminActive) {
+                            Button(onClick = {
+                                context.startActivity(Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+                                    putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, ComponentName(context, LowYourToneDeviceAdminReceiver::class.java))
+                                    putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Allow LowYourTone to lock the phone after its Lock Screen trigger.")
+                                })
+                            }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), shape = RoundedCornerShape(8.dp)) {
+                                Text("ENABLE")
+                            }
+                        }
+                    }
+                }
             }
 
             Surface(

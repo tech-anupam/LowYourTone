@@ -102,6 +102,7 @@ class AddEditWakeWordViewModel @Inject constructor(
     fun save(onDone: () -> Unit) {
         val state = _uiState.value
         if (state.phrase.isBlank()) return
+        if (state.selectedActionType == ActionType.CALL_EMERGENCY && state.phrase.trim().split("\\s+".toRegex()).count { it.isNotBlank() } < 2) return
 
         viewModelScope.launch {
             val existingWord = wakeWordId?.let { wakeWordDao.getById(it) }

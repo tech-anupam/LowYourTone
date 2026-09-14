@@ -1,205 +1,126 @@
 # LowYourTone
 
-**When you can't reach your phone, your voice becomes your lifeline.**
+**Offline voice-triggered actions for the moments when reaching a phone is hard.**
 
 <p align="center">
-  <img src="https://img.shields.io/github/v/tag/tech-anupam/LowYourTone?label=release&style=for-the-badge&color=8A2BE2" alt="Latest Release">
-  <img src="https://img.shields.io/github/downloads/tech-anupam/LowYourTone/total?style=for-the-badge&color=8A2BE2" alt="Downloads">
-  <img src="https://img.shields.io/github/license/tech-anupam/LowYourTone?style=for-the-badge&color=8A2BE2" alt="License">
-  <img src="https://img.shields.io/badge/platform-Android%208.0%2B-8A2BE2?style=for-the-badge" alt="Platform">
+  <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android 8.0 or newer">
+  <img src="https://img.shields.io/badge/works-offline-171717?style=for-the-badge" alt="Works offline">
+  <img src="https://img.shields.io/badge/on--device-speech-5B2EFF?style=for-the-badge" alt="On-device speech recognition">
+  <img src="https://img.shields.io/github/license/tech-anupam/LowYourTone?style=for-the-badge&color=5B2EFF" alt="MIT license">
 </p>
 
----
+## Help launch LowYourTone on Google Play
 
-## The Problem We Can't Ignore
+<p align="center">
+  <a href="upi://pay?pa=anupambuilds@fam&pn=Anupam&tn=LowYourTone%20Play%20Store%20launch&cu=INR">
+    <img src="https://img.shields.io/badge/UPI-anupambuilds%40fam-5B2EFF?style=for-the-badge&logo=googlepay&logoColor=white" alt="Donate via UPI: anupambuilds@fam">
+  </a>
+  <img src="https://img.shields.io/badge/Play%20Store%20fund-%E2%82%B90%20%2F%20%E2%82%B92%2C500-FF6B6B?style=for-the-badge" alt="Play Store fund: ₹0 of ₹2,500">
+</p>
 
-India reported **4,41,534 cases** of crimes against women in 2024 alone.
-
-That's **1,210 women every single day.**
-
-And these are just the ones that got reported.
-
-In **96.8% of rape cases**, the attacker was someone the victim already knew. In cities like Delhi and Bengaluru, women are harassed in broad daylight - during morning commutes, on college campuses, walking home from work. A 2025 study found that **40% of urban Indian women** still feel unsafe in their own neighborhoods.
-
-The worst part? In a real emergency, **you can't always reach your phone.** Your hands might be held. Your phone might be in your bag. You might be driving. You might just be frozen with fear.
-
-Every safety app out there needs you to unlock your phone, open the app, find a button, and press it. In a real crisis, none of that works.
-
-**We asked a simple question: What if your voice was enough?**
+Google Play developer registration costs **₹2,500**. The current fund is **₹0**. If you want this free safety tool to reach people beyond an APK download, contribute any amount to **`anupambuilds@fam`**. Every donation goes toward the Play Store launch.
 
 ---
 
-## What LowYourTone Does
+## What it does
 
-LowYourTone listens for a secret word that only you know. Say it, and your phone acts - immediately, automatically, silently.
+LowYourTone keeps a small offline listener active after you arm it. When it hears your chosen trigger phrase, it performs the action attached to that phrase.
 
-No buttons to press. No screen to unlock. No internet required. **Just your voice.**
+| Trigger | Example action |
+| --- | --- |
+| `red mango` | Place an emergency call |
+| `blue lantern` | Send an SOS location SMS |
+| `quiet signal` | Start an audio recording |
+| `night light` | Turn on the flashlight or alarm |
 
-| Say This | Your Phone Does This |
-|----------|---------------------|
-| *your secret word* | Calls your emergency contact |
-| *your secret word* | Sends your GPS location via SMS |
-| *your secret word* | Starts recording audio as evidence |
-| *your secret word* | Turns on flashlight as a signal |
-| *your secret word* | Triggers a loud alarm |
-| *your secret word* | Sends a WhatsApp message |
+The app is intended for personal safety, accessibility, and hands-free shortcuts. It is not a replacement for local emergency services or a guaranteed emergency-response system.
 
-You choose the word. You choose the action. Nobody else knows.
+## Safety-first trigger design
 
-**Your wake word could be anything** - a normal-sounding word that won't alert an attacker. Something like "weather" or "homework" or a word in your own language. It sounds innocent. But your phone knows what it means.
+Accidental emergency calls are harmful, so the app does not treat any random sound as a trigger.
 
----
+- **Exact phrase gate** — every word of the configured phrase must be heard in order; partial matches are rejected.
+- **Two words for emergency calls** — emergency actions require a deliberately chosen two-word phrase. Avoid common words such as “help”, “call”, or “stop”.
+- **Strict offline filtering** — keyword thresholds are biased toward fewer false positives.
+- **30-second emergency lockout** — repeated recognition cannot place a series of emergency calls.
 
-## Why This Exists
+Choose an unusual, pronounceable phrase and test it around normal conversation, traffic, TV audio, and the places where it will be used.
 
-After the 2012 Nirbhaya case, India got stricter laws. After every trending case since - Hathras, Hyderabad, Bengaluru, Kolkata - we got outrage, candlelight marches, hashtags. The news cycle moves on. The problem doesn't.
+## Locked-phone behavior
 
-The government launched the 112 emergency number, the Nirbhaya Fund, One Stop Centres. These matter. But they all assume one thing: **that the victim can make a call.**
+Once the app is configured, permissions are granted, and Listening is turned on, its foreground microphone service can continue listening while the screen is locked. A matching emergency phrase can request a call without the user opening the app or entering a PIN.
 
-What if she can't?
+There are Android limits worth knowing:
 
-What if her hands are pinned? What if she's being watched? What if her phone is in her pocket and she can't take it out?
+- The user must complete setup and grant permissions **before** an emergency.
+- After a complete reboot, newer Android versions may require the user to unlock and open the app once before microphone monitoring can resume.
+- Battery restrictions can stop background work on some phones. Use the in-app **Battery → Fix** option and enable the manufacturer’s Autostart option when shown.
+- A carrier, network outage, a device policy, or Android itself can still prevent a call from connecting. Always test on the intended phone and SIM.
 
-LowYourTone was built for that exact moment. The moment where everything else fails, and the only thing left is your voice.
+## Setup in five minutes
 
----
+1. Install the APK and open LowYourTone.
+2. Allow **Microphone** and **Phone** permissions. Allow **SMS** and **Location** if an SOS location message is needed.
+3. Create a unique two-word trigger and choose **Emergency Call** or another action.
+4. Turn on **Listening** from the home screen.
+5. Open Settings and confirm **EMERGENCY READY**. Disable battery optimisation when prompted.
+6. Lock the phone and run several safe test triggers before depending on it.
 
-## How It Works
+For the Lock Screen action, enable **Screen Lock** in Settings once. Android keeps control of the PIN, pattern, or password; LowYourTone cannot read or bypass it.
 
-```
-1. You set a secret wake word (e.g., "pineapple")
-2. You assign an action (e.g., send location SMS to Mom)
-3. LowYourTone listens in the background - always, silently
-4. You say "pineapple" - your phone sends the SMS instantly
-```
+## Available actions
 
-**Everything happens on your phone. Nothing goes to the cloud. No internet needed. No audio ever leaves your device.**
+| Category | Actions |
+| --- | --- |
+| Contact & alert | Call a contact, emergency call, SMS, SOS location SMS, WhatsApp message |
+| Evidence & visibility | Audio recording, video capture prompt, flashlight, alarm, disco flash |
+| Phone controls | Lock screen, silent mode, Do Not Disturb, maximum volume, stop media |
+| Flexible shortcuts | Open an installed app or send a custom Android intent |
 
-This isn't speech-to-text or Google Assistant. This uses PocketSphinx - an offline speech recognition engine that runs entirely on your device. Your privacy is absolute.
+Different phrases can perform different actions. Non-emergency actions can be configured to ask for confirmation first.
 
----
+## Privacy
 
-## Features
-
-- **100% Offline** - Works without WiFi, mobile data, or any internet connection
-- **Background Listening** - Works even when your phone is locked or in your pocket
-- **17 Actions** - Call, SMS, location share, flashlight, alarm, audio record, WhatsApp, and more
-- **Multiple Wake Words** - Different words for different emergencies
-- **Zero Cloud** - No audio data ever leaves your phone
-- **Customizable Sensitivity** - Adjust how easily your wake word is detected
-- **Action History** - See every time a wake word was triggered
-- **Battery Optimized** - Designed to run for hours without draining your battery
-- **Works on Xiaomi/Redmi** - Special handling for aggressive battery management
-
----
-
-## Not Just for Women
-
-While women's safety was the original motivation, LowYourTone is for everyone:
-
-- **Elderly parents** who can't navigate phone screens during a fall
-- **Delivery workers** who need hands-free emergency calls while riding
-- **Children** who need a simple way to alert parents
-- **Anyone with disabilities** who can't easily use touchscreens
-- **Solo travelers** who want a silent panic system
-- **Night shift workers** walking to their vehicle alone
-
----
+- Speech recognition runs locally with PocketSphinx.
+- The app does not request Internet permission and does not upload audio.
+- Audio is only saved when the user explicitly configures the **Record Audio** action.
+- Trigger history remains on the device.
+- Source code is open for inspection.
 
 ## Download
 
 <p align="center">
   <a href="https://github.com/tech-anupam/LowYourTone/releases/latest">
-    <img src="https://img.shields.io/badge/Download%20APK-Latest%20Release-8A2BE2?style=for-the-badge&logo=android" alt="Download APK">
+    <img src="https://img.shields.io/badge/Download-Latest%20APK-5B2EFF?style=for-the-badge&logo=android&logoColor=white" alt="Download latest APK">
   </a>
 </p>
 
-> **Requires Android 8.0 (Oreo) or higher.** Download the APK from the latest GitHub release and install it manually.
+Requires Android 8.0 (Oreo) or newer. Downloading from GitHub may require allowing installation from your browser or file manager.
 
----
+## Built with
 
-## Play Store?
+| Part | Technology |
+| --- | --- |
+| App | Kotlin, Jetpack Compose, Material 3 |
+| Offline listener | PocketSphinx |
+| App architecture | MVVM, Hilt, Room, DataStore |
+| Location | Google Play Services Fused Location |
+| Android range | min SDK 26 · target SDK 36 |
 
-We want to put this on the Google Play Store so it reaches the people who need it most - women in tier-2 and tier-3 cities, college students, night shift workers.
+## Contribute
 
-But publishing on the Play Store costs **₹2,500** (Google's one-time developer registration fee).
+Bug reports, device-specific battery findings, trigger-testing notes, accessibility improvements, and pull requests are all useful.
 
-If this app helped you, or if you think it should reach more people:
-
-**UPI: `anupambuilds@fam`**
-
-Every rupee goes directly toward the Play Store listing and keeping this project alive. If we hit the goal, the app goes live on the Play Store - free, forever, for everyone.
-
----
-
-## Privacy
-
-- **No internet permission** - The app literally cannot send data anywhere
-- **No analytics, no tracking, no telemetry**
-- **All speech recognition happens on-device** using PocketSphinx
-- **Audio is never stored** unless you explicitly use the "Record Audio" action
-- **Open source** - Read every line of code yourself
-
----
-
-## Tech Stack
-
-For developers who want to contribute or understand how it works:
-
-| Component | Technology |
-|-----------|------------|
-| Language | Kotlin 100% |
-| UI | Jetpack Compose + Material 3 |
-| Speech Engine | PocketSphinx (offline, on-device) |
-| Architecture | MVVM + Hilt DI |
-| Database | Room |
-| Preferences | DataStore |
-| Location | Google Play Services FusedLocation |
-| Build | Gradle + AGP 9.1.0 |
-| Target SDK | 36 (Android 16) |
-| Min SDK | 26 (Android 8.0) |
-
----
-
-## Contributing
-
-This is a solo project built by one person. If you're a developer and want to help:
-
-1. Fork the repo
-2. Create a feature branch
-3. Make your changes
-4. Open a pull request
-
-No contribution is too small. Even fixing a typo helps.
-
----
-
-## Research & References
-
-The statistics and context mentioned in this README come from publicly available sources:
-
-| Source | What It Says |
-|--------|-------------|
-| **NCRB "Crime in India 2024"** (May 2026) | 4,41,534 registered cases of crimes against women in 2024; 64.6 per lakh crime rate; 96.8% of rape cases involved known perpetrators |
-| **Ashoka University / NCRB Analysis** | 1,210 cases registered per day on average; domestic violence as the leading category |
-| **National Commission for Women (NCW)** | 25% of complaints are domestic violence; rest include stalking, assault, and dowry harassment |
-| **IndiaSpend / SPRF** | Significant underreporting due to social stigma and lack of faith in the justice system |
-| **2025 Urban Safety Survey** | 40% of women in urban India consider their surroundings unsafe; harassment peaks during 5 AM-8 PM |
-| **NDTV / The Hindu (2024-2025)** | Multiple high-profile cases in Bengaluru and Delhi involving broad-daylight assault and stalking |
-| **Government Initiatives** | 112 emergency number, Nirbhaya Fund, One Stop Centres (OSCs), 181 women's helpline |
-
----
+1. Fork the repository.
+2. Make a focused change on a branch.
+3. Test it on a real device where possible.
+4. Open a pull request with what you tested.
 
 ## License
 
-This project is open source under the [MIT License](LICENSE).
-
----
+[MIT](LICENSE)
 
 <p align="center">
-  <b>Built in India. For India. By someone who got tired of just being angry.</b>
-</p>
-
-<p align="center">
+  Built in India for people who need a safer way to ask their phone for help.<br>
   <a href="https://github.com/tech-anupam">@tech-anupam</a>
 </p>

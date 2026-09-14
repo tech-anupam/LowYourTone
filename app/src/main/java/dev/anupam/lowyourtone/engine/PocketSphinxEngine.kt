@@ -61,7 +61,7 @@ class PocketSphinxEngine : WakeWordEngine, RecognitionListener {
             recognizer = SpeechRecognizerSetup.defaultSetup()
                 .setAcousticModel(File(syncDir, "models/en-us-ptm"))
                 .setDictionary(File(syncDir, "models/lm/words.dic"))
-                .setKeywordThreshold(1e-25f)
+                .setKeywordThreshold(1e-30f)
                 .recognizer.apply {
                     addListener(this@PocketSphinxEngine)
                 }
@@ -97,21 +97,17 @@ class PocketSphinxEngine : WakeWordEngine, RecognitionListener {
     }
 
     private fun thresholdForSensitivity(sensitivity: Float, wordCount: Int): String {
-        val base = when {
-            sensitivity <= 1e-40f -> sensitivity.toBigDecimal().toPlainString()
-            sensitivity > 0f && sensitivity <= 1f -> {
-                val exp = -10 - ((sensitivity * 35).toInt().coerceIn(0, 35))
-                "1e$exp"
-            }
-            else -> {
-                when {
-                    wordCount <= 1 -> "1e-25"
-                    wordCount == 2 -> "1e-35"
-                    else -> "1e-45"
-                }
-            }
+        // A value nearer to 1 is stricter in PocketSphinx keyword spotting.
+        // This minimum protects against legacy, overly-sensitive trigger values.
+        val safeMinimum = when {
+            wordCount <= 1 -> 1e-15f
+            wordCount == 2 -> 1e-20f
+            else -> 1e-25f
         }
-        return base
+        val configured = sensitivity.takeIf { it > 0f && it <= 1f } ?: safeMinimum
+        val strictThreshold = maxOf(configured, safeMinimum)
+        val exponent = kotlin.math.ceil(kotlin.math.log10(strictThreshold.toDouble())).toInt()
+        return "1e$exponent"
     }
 
     override fun loadKeywords(keywords: List<KeywordEntry>) {
@@ -259,18 +255,18 @@ class PocketSphinxEngine : WakeWordEngine, RecognitionListener {
     }
 
     private fun findExactMatch(text: String): KeywordEntry? {
+        val heard = normalizePhrase(text)
         return currentKeywords.find { entry ->
-            val target = entry.phrase.trim().lowercase()
-            val targetWords = target.split("\\s+".toRegex()).filter { it.isNotBlank() }
-            val textWords = text.split("\\s+".toRegex()).filter { it.isNotBlank() }
-
-            if (targetWords.size == 1) {
-                textWords.any { it == targetWords[0] }
-            } else {
-                targetWords.all { tw -> textWords.any { it == tw } }
-            }
+            // Reject partial matches embedded in normal conversation.
+            normalizePhrase(entry.phrase) == heard
         }
     }
+
+    private fun normalizePhrase(value: String): String = value
+        .lowercase()
+        .replace(Regex("[^a-z0-9']+"), " ")
+        .trim()
+        .replace(Regex("\\s+"), " ")
 
     private fun attemptRestart() {
         if (!listening) return

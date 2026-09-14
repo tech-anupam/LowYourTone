@@ -215,21 +215,43 @@ fun CallContactForm(onDone: (Map<String, String>) -> Unit) {
 
 @Composable
 fun CallEmergencyForm(onDone: (Map<String, String>) -> Unit) {
-    var number by remember { mutableStateOf("") }
+    var number by remember { mutableStateOf("112") }
     var emergencyContact by remember { mutableStateOf("") }
 
+    Text(
+        text = "Quick Select Emergency Service",
+        color = MaterialTheme.colorScheme.primary,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Medium
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        val presets = listOf(
+            "112" to "112 (Police / All SOS)",
+            "100" to "100 (Police)",
+            "101" to "101 (Fire)",
+            "108" to "108 (Ambulance)",
+            "1091" to "1091 (Women Helpline)"
+        )
+        items(presets) { (num, label) ->
+            Chip(label) { number = num }
+        }
+    }
+    Spacer(modifier = Modifier.height(16.dp))
     OutlinedTextField(
         value = number,
         onValueChange = { number = it },
-        label = { Text("Emergency Number (e.g. 911)") },
+        label = { Text("Emergency Number (India: 112)") },
         modifier = Modifier.fillMaxWidth(),
-        colors = textFieldColors()
+        colors = textFieldColors(),
+        singleLine = true
     )
     Spacer(modifier = Modifier.height(16.dp))
-    ContactPickerField("Also notify this number", emergencyContact) { emergencyContact = it }
+    ContactPickerField("Backup Contact (Receives SOS Location SMS)", emergencyContact) { emergencyContact = it }
     Spacer(modifier = Modifier.height(24.dp))
-    DoneButton(enabled = number.isNotBlank()) {
-        val params = mutableMapOf("number" to number)
+    DoneButton(enabled = true) {
+        val finalNumber = number.trim().ifBlank { "112" }
+        val params = mutableMapOf("number" to finalNumber)
         if (emergencyContact.isNotBlank()) {
             params["emergencyContact"] = emergencyContact
             params["sendLocationSms"] = "true"

@@ -90,6 +90,7 @@ class WakeWordService : Service(), WakeWordCallback {
             else -> {
                 if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                     serviceStatus.setError("Microphone permission not granted")
+                    postResumeNotification("Microphone permission needed", "Tap to reopen LowYourTone and grant microphone access")
                     stopSelf()
                     return START_NOT_STICKY
                 }
@@ -145,24 +146,27 @@ class WakeWordService : Service(), WakeWordCallback {
             val target = phrase.trim().lowercase()
             val wakeWord = enabledWords.find {
                 val p = it.phrase.trim().lowercase()
-                val pWords = p.split("\\s+".toRegex()).filter { w -> w.isNotBlank() }
-                val tWords = target.split("\\s+".toRegex()).filter { w -> w.isNotBlank() }
-                if (pWords.size == 1) {
-                    tWords.any { tw -> tw == pWords[0] }
-                } else {
-                    pWords.all { pw -> tWords.any { tw -> tw == pw } }
-                }
+                p == target
             } ?: return@launch
+
+            val action = wakeActionDao.getById(wakeWord.actionId) ?: return@launch
+            val phraseWordCount = wakeWord.phrase.trim().split("\\s+".toRegex()).count { it.isNotBlank() }
+            if (action.type == dev.anupam.lowyourtone.data.model.ActionType.CALL_EMERGENCY && phraseWordCount < 2) {
+                postErrorNotification("Emergency trigger needs updating", "Use a unique two-word phrase to prevent accidental calls")
+                return@launch
+            }
 
             val now = System.currentTimeMillis()
             val wordKey = wakeWord.id
             val lastTime = lastTriggerPerWord[wordKey] ?: 0L
-            if (wakeWord.cooldownMs > 0 && now - lastTime < wakeWord.cooldownMs) {
+            val effectiveCooldown = maxOf(
+                wakeWord.cooldownMs,
+                if (action.type == dev.anupam.lowyourtone.data.model.ActionType.CALL_EMERGENCY) EMERGENCY_COOLDOWN_MS else 0L
+            )
+            if (effectiveCooldown > 0 && now - lastTime < effectiveCooldown) {
                 return@launch
             }
             lastTriggerPerWord[wordKey] = now
-
-            val action = wakeActionDao.getById(wakeWord.actionId) ?: return@launch
 
             try {
                 actionDispatcher.dispatch(wakeWord, action, confidence)
@@ -322,7 +326,10 @@ class WakeWordService : Service(), WakeWordCallback {
         manager.notify(NOTIFICATION_ID, createNotification(count))
     }
 
-    private fun postResumeNotification() {
+    private fun postResumeNotification(
+        title: String = "LowYourTone paused",
+        message: String = "Tap to resume listening"
+    ) {
         val resumeIntent = PendingIntent.getActivity(
             this,
             RESUME_REQUEST_CODE,
@@ -330,8 +337,8 @@ class WakeWordService : Service(), WakeWordCallback {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val notif = NotificationCompat.Builder(this, ERROR_CHANNEL_ID)
-            .setContentTitle("LowYourTone paused")
-            .setContentText("Tap to resume listening")
+            .setContentTitle(title)
+            .setContentText(message)
             .setSmallIcon(R.drawable.ic_app_logo)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
@@ -374,6 +381,7 @@ class WakeWordService : Service(), WakeWordCallback {
         private const val STOP_ACTION_REQUEST = 44
         private const val WAKE_LOCK_TIMEOUT_MS = 10 * 60 * 1000L
         private const val WAKE_LOCK_RENEW_MS = 9 * 60 * 1000L
+        private const val EMERGENCY_COOLDOWN_MS = 30_000L
 
         fun createStartIntent(context: Context) = Intent(context, WakeWordService::class.java).apply {
             action = ACTION_START

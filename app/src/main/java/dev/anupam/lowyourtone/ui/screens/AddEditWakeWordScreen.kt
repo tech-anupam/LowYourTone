@@ -28,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -154,29 +153,14 @@ fun AddEditWakeWordScreen(
             }
 
             val isEmergency = uiState.selectedActionType == ActionType.CALL_EMERGENCY
+            val emergencyPhraseSafe = uiState.phrase.trim().split("\\s+".toRegex()).count { it.isNotBlank() } >= 2
 
-            Surface(
-                color = MaterialTheme.colorScheme.surface,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text("SENSITIVITY", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Slider(
-                        value = uiState.sensitivity.toFloat(),
-                        onValueChange = { viewModel.updateSensitivity(it.toInt()) },
-                        valueRange = 1f..10f,
-                        steps = 8
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("STRICT", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-                        Text("RELAXED", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-                    }
-                }
+            if (isEmergency && !emergencyPhraseSafe) {
+                Text(
+                    "Emergency calls require a unique two-word phrase, for example “red mango”. This prevents normal speech from triggering a call.",
+                    color = MaterialTheme.colorScheme.secondary,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
 
             Surface(
@@ -257,7 +241,7 @@ fun AddEditWakeWordScreen(
             Button(
                 onClick = { viewModel.save(onDone = { navController.navigateUp() }) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                enabled = uiState.phrase.isNotBlank() && uiState.selectedActionType != null,
+                enabled = uiState.phrase.isNotBlank() && uiState.selectedActionType != null && (!isEmergency || emergencyPhraseSafe),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,

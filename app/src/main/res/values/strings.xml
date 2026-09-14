@@ -9,4 +9,6 @@
     <string name="listening_active">Listening for wake words</string>
     <string name="service_running">Detection service is active</string>
     <string name="default_wake_word">hello</string>
+    <string name="device_admin_label">LowYourTone screen lock</string>
+    <string name="device_admin_description">Lets LowYourTone lock this phone only when you trigger its Lock Screen action.</string>
 </resources>

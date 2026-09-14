@@ -6,6 +6,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ComponentName
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -17,6 +18,7 @@ import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
 import android.telephony.SmsManager
+import android.telecom.TelecomManager
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.LocationServices
@@ -28,6 +30,7 @@ import dev.anupam.lowyourtone.data.model.ActionType
 import dev.anupam.lowyourtone.data.model.HistoryEntry
 import dev.anupam.lowyourtone.data.model.WakeAction
 import dev.anupam.lowyourtone.data.model.WakeWord
+import dev.anupam.lowyourtone.security.LowYourToneDeviceAdminReceiver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -127,24 +130,73 @@ class ActionDispatcher @Inject constructor(
     }
 
     private fun handleCallContact(params: Map<String, Any>) {
-        requirePermission(Manifest.permission.CALL_PHONE)
         val number = params["phoneNumber"] as? String ?: throw IllegalArgumentException("No phone number")
-        context.startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:$number")).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        })
+        startCallSafe("tel:$number", "Calling Contact")
     }
 
     private fun handleCallEmergency(params: Map<String, Any>) {
-        requirePermission(Manifest.permission.CALL_PHONE)
-        val number = params["number"] as? String ?: throw IllegalArgumentException("No emergency number")
-        context.startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:$number")).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        })
+        val number = (params["number"] as? String)?.trim()?.takeIf { it.isNotBlank() } ?: "112"
+        startCallSafe("tel:$number", "EMERGENCY CALL ($number)")
 
-        val sendLocation = params["sendLocationSms"] as? Boolean ?: false
-        if (sendLocation) {
-            val contact = params["emergencyContact"] as? String ?: return
+        val sendLocation = (params["sendLocationSms"] as? Boolean)
+            ?: ((params["sendLocationSms"] as? String)?.toBoolean())
+            ?: false
+        val contact = params["emergencyContact"] as? String
+        if (sendLocation && !contact.isNullOrBlank()) {
             scope.launch { sendLocationSms(contact) }
+        }
+    }
+
+    private fun startCallSafe(telUri: String, label: String) {
+        val hasCallPermission = ActivityCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CALL_PHONE
+        ) == PackageManager.PERMISSION_GRANTED
+
+        val intent = if (hasCallPermission) {
+            Intent(Intent.ACTION_CALL, Uri.parse(telUri)).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+        } else {
+            Intent(Intent.ACTION_DIAL, Uri.parse(telUri)).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+        }
+
+        try {
+            // Telecom places the call without depending on a dialer Activity being allowed
+            // to come to the foreground while the screen is locked.
+            if (hasCallPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val telecom = context.getSystemService(TelecomManager::class.java)
+                telecom.placeCall(Uri.parse(telUri), android.os.Bundle())
+            } else {
+                context.startActivity(intent)
+            }
+        } catch (e: Exception) {
+            val dialIntent = Intent(Intent.ACTION_DIAL, Uri.parse(telUri)).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            try {
+                context.startActivity(dialIntent)
+            } catch (_: Exception) {}
+
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                telUri.hashCode(),
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            val notif = NotificationCompat.Builder(context, "emergency_channel")
+                .setSmallIcon(android.R.drawable.ic_menu_call)
+                .setContentTitle(label)
+                .setContentText("Tap to call ${telUri.removePrefix("tel:")}")
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setCategory(NotificationCompat.CATEGORY_CALL)
+                .setFullScreenIntent(pendingIntent, true)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .build()
+            notificationManager.notify(telUri.hashCode(), notif)
         }
     }
 
@@ -285,15 +337,11 @@ class ActionDispatcher @Inject constructor(
     private fun handleLockScreen() {
         try {
             val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-            val adminComponent = ComponentName(context, context.packageName + ".DeviceAdminReceiver")
+            val adminComponent = ComponentName(context, LowYourToneDeviceAdminReceiver::class.java)
             if (dpm.isAdminActive(adminComponent)) {
                 dpm.lockNow()
             } else {
-                val accessibilityIntent = Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-                showActionErrorNotification("Lock Screen", "Device admin not active. Enable it in Settings to use screen lock.")
-                context.startActivity(accessibilityIntent)
+                showActionErrorNotification("Lock Screen", "Enable Screen Lock in LowYourTone Settings first.")
             }
         } catch (e: Exception) {
             showActionErrorNotification("Lock Screen", "Unable to lock screen: ${e.message}")
