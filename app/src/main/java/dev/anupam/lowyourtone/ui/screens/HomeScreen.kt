@@ -30,11 +30,14 @@ import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DoNotDisturb
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sms
@@ -45,7 +48,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,7 +59,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -69,9 +71,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import dev.anupam.lowyourtone.R
 import dev.anupam.lowyourtone.data.model.ActionType
@@ -91,15 +96,31 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_app_logo),
                             contentDescription = null,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(26.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("LOWYOURTONE", style = MaterialTheme.typography.titleLarge)
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                "LowYourTone",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            Text(
+                                if (masterListening) "Active - listening for triggers"
+                                else "Tap the mic to start listening",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = if (masterListening) 0.7f else 0.45f
+                                )
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -107,111 +128,91 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                     titleContentColor = MaterialTheme.colorScheme.onBackground
                 ),
                 actions = {
-                    MicIndicator(isListening = masterListening)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Switch(
-                        checked = masterListening,
-                        onCheckedChange = { viewModel.toggleMasterListening() },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = MaterialTheme.colorScheme.background,
-                            checkedTrackColor = MaterialTheme.colorScheme.primary,
-                            uncheckedThumbColor = MaterialTheme.colorScheme.onSurface,
-                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    )
                     IconButton(onClick = { navController.navigate("settings") }) {
-                        Icon(Icons.Default.Settings, contentDescription = null)
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = "Settings",
+                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                        )
                     }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
+            ExtendedFloatingActionButton(
                 onClick = { navController.navigate("add_edit") },
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-            }
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text("New trigger", fontWeight = FontWeight.SemiBold) }
+            )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 8.dp,
+                bottom = 100.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = if (masterListening) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (masterListening) {
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.onPrimary)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("LISTENING", color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                        Text("STOPPED", color = MaterialTheme.colorScheme.onPrimary)
-                    }
-                }
+            item {
+                ListeningBanner(
+                    isListening = masterListening,
+                    wordCount = wakeWords.size,
+                    onToggle = { viewModel.toggleMasterListening() }
+                )
             }
 
             if (wakeWords.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.Mic,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("No triggers yet", style = MaterialTheme.typography.titleLarge)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Tap + to create your first wake word",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        )
-                    }
+                item {
+                    EmptyState()
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 0.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(wakeWords, key = { it.first.id }) { (word, action) ->
-                        WakeWordCard(
-                            word = word,
-                            action = action,
-                            onClick = { navController.navigate("add_edit?wakeWordId=${word.id}") },
-                            onEdit = { navController.navigate("add_edit?wakeWordId=${word.id}") },
-                            onRename = {
-                                renameText = word.phrase
-                                wordToRename = word
-                            },
-                            onDelete = { wordToDelete = word },
-                            onToggle = { enabled -> viewModel.toggleWakeWord(word.id, enabled) }
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
+                    ) {
+                        Text(
+                            "TRIGGERS",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            letterSpacing = 1.5.sp
                         )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        ) {
+                            Text(
+                                "${wakeWords.size}",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                            )
+                        }
                     }
+                }
+
+                items(wakeWords, key = { it.first.id }) { (word, action) ->
+                    WakeWordCard(
+                        word = word,
+                        action = action,
+                        onClick = { navController.navigate("add_edit?wakeWordId=${word.id}") },
+                        onEdit = { navController.navigate("add_edit?wakeWordId=${word.id}") },
+                        onRename = {
+                            renameText = word.phrase
+                            wordToRename = word
+                        },
+                        onDelete = { wordToDelete = word },
+                        onToggle = { enabled -> viewModel.toggleWakeWord(word.id, enabled) }
+                    )
                 }
             }
         }
@@ -220,8 +221,14 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
     wordToDelete?.let { word ->
         AlertDialog(
             onDismissRequest = { wordToDelete = null },
-            title = { Text("Remove this trigger?", style = MaterialTheme.typography.titleLarge) },
-            text = { Text("Are you sure you want to delete '${word.phrase}'?", style = MaterialTheme.typography.bodyLarge) },
+            title = { Text("Remove trigger?", style = MaterialTheme.typography.titleLarge) },
+            text = {
+                Text(
+                    "\"${word.phrase}\" will be permanently removed.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -229,12 +236,12 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                         wordToDelete = null
                     }
                 ) {
-                    Text("DELETE", color = MaterialTheme.colorScheme.secondary)
+                    Text("Delete", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { wordToDelete = null }) {
-                    Text("CANCEL", color = MaterialTheme.colorScheme.onSurface)
+                    Text("Cancel")
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface
@@ -244,7 +251,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
     wordToRename?.let { word ->
         AlertDialog(
             onDismissRequest = { wordToRename = null },
-            title = { Text("Rename trigger", style = MaterialTheme.typography.titleLarge) },
+            title = { Text("Rename trigger") },
             text = {
                 OutlinedTextField(
                     value = renameText,
@@ -262,16 +269,143 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                         wordToRename = null
                     }
                 ) {
-                    Text("RENAME", color = MaterialTheme.colorScheme.secondary)
+                    Text("Rename", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { wordToRename = null }) {
-                    Text("CANCEL", color = MaterialTheme.colorScheme.onSurface)
+                    Text("Cancel")
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface
         )
+    }
+}
+
+@Composable
+fun ListeningBanner(isListening: Boolean, wordCount: Int, onToggle: () -> Unit) {
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val pulse by infiniteTransition.animateFloat(
+        initialValue = 0.85f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_alpha"
+    )
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = if (isListening)
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+        else
+            MaterialTheme.colorScheme.surface,
+        tonalElevation = if (isListening) 0.dp else 1.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (isListening)
+                            MaterialTheme.colorScheme.primary.copy(alpha = if (isListening) pulse * 0.2f else 0.08f)
+                        else
+                            MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Mic,
+                    contentDescription = null,
+                    tint = if (isListening) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = if (isListening) "Listening" else "Not listening",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isListening) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = if (isListening)
+                        "$wordCount trigger${if (wordCount == 1) "" else "s"} active"
+                    else
+                        "Toggle on to start detection",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            }
+
+            Switch(
+                checked = isListening,
+                onCheckedChange = { onToggle() },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.background,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun EmptyState() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 80.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Mic,
+                    contentDescription = null,
+                    modifier = Modifier.size(38.dp),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "No triggers yet",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                "Tap \"New trigger\" below to get started.\nSay a word, your phone acts.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                lineHeight = 20.sp
+            )
+        }
     }
 }
 
@@ -288,17 +422,15 @@ fun MicIndicator(isListening: Boolean) {
         label = "mic_scale"
     )
 
-    val color = when {
-        isListening -> MaterialTheme.colorScheme.tertiary
-        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-    }
-
     Box(
         modifier = Modifier
             .size(12.dp)
             .scale(if (isListening) scale else 1f)
             .clip(CircleShape)
-            .background(color)
+            .background(
+                if (isListening) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
     )
 }
 
@@ -322,77 +454,114 @@ fun WakeWordCard(
                 onClick = onClick,
                 onLongClick = { showMenu = true }
             ),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface
+        tonalElevation = 1.dp
     ) {
-        Box {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+        Row(
+            modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 14.dp, bottom = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        if (action != null)
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                        else
+                            MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = word.phrase.uppercase(),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onBackground
+                Icon(
+                    imageVector = if (action != null) getActionIcon(action.type) else Icons.Default.Mic,
+                    contentDescription = null,
+                    tint = if (action != null) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = word.phrase.lowercase(),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (word.enabled) MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                )
+                Spacer(modifier = Modifier.height(3.dp))
+                Text(
+                    text = action?.type?.label ?: "No action set",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (action != null)
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                    else
+                        MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                )
+            }
+
+            Box {
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(
+                        Icons.Default.MoreVert,
+                        contentDescription = "Options",
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        modifier = Modifier.size(18.dp)
                     )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = 8.dp)
-                    ) {
-                        action?.let {
-                            Icon(
-                                imageVector = getActionIcon(it.type),
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = it.type.label,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
                 }
-                Switch(
-                    checked = word.enabled,
-                    onCheckedChange = onToggle,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.background,
-                        checkedTrackColor = MaterialTheme.colorScheme.tertiary,
-                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurface,
-                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Edit") },
+                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                        onClick = {
+                            showMenu = false
+                            onEdit()
+                        }
                     )
-                )
+                    DropdownMenuItem(
+                        text = { Text("Rename") },
+                        leadingIcon = { Icon(Icons.Default.Mic, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                        onClick = {
+                            showMenu = false
+                            onRename()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        onClick = {
+                            showMenu = false
+                            onDelete()
+                        }
+                    )
+                }
             }
-            DropdownMenu(
-                expanded = showMenu,
-                onDismissRequest = { showMenu = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Edit") },
-                    onClick = {
-                        showMenu = false
-                        onEdit()
-                    }
+
+            Switch(
+                checked = word.enabled,
+                onCheckedChange = onToggle,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.background,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
-                DropdownMenuItem(
-                    text = { Text("Rename") },
-                    onClick = {
-                        showMenu = false
-                        onRename()
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Delete") },
-                    onClick = {
-                        showMenu = false
-                        onDelete()
-                    }
-                )
-            }
+            )
         }
     }
 }
